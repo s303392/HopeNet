@@ -8,8 +8,8 @@ def load_objects(obj_root):
     object_names = ['juice_bottle', 'liquid_soap', 'milk', 'salt']
     all_models = {}
     for obj_name in object_names:
-        obj_path = os.path.join(obj_root, '{}_model'.format(obj_name),
-                                '{}_model.ply'.format(obj_name))
+        obj_path = os.path.join(obj_root, f"{obj_name}_model",f"{obj_name}_model.ply")
+        print(obj_path)
         mesh = trimesh.load(obj_path)
         all_models[obj_name] = mesh
     return all_models
@@ -39,7 +39,7 @@ def get_obj_transform(sample, obj_root):
 
 
 # Change this path
-root = '/path/to/FHAD/hand_pose_action'
+root = r'C:\Users\filip\Desktop\Politecnico\INGEGNERIA\TESI_loc\hope_net\HOPE\datasets\fhad\hand_pose_action'
 skeleton_root = os.path.join(root, 'Hand_pose_annotation_v1')
 obj_root = os.path.join(root, 'Object_models')
 obj_trans_root = os.path.join(root, 'Object_6D_pose_annotation_v1_1')
@@ -72,68 +72,88 @@ points3d_test = []
 for subject in os.listdir(obj_trans_root):
     print(subject)
     for action_name in os.listdir(os.path.join(obj_trans_root, subject)):
-        print(action_name)
+        #print(action_name)
         obj = '_'.join(action_name.split('_')[1:])
+        #print(obj)
         for seq_idx in os.listdir(os.path.join(obj_trans_root, subject, action_name)):
-            sset = 'train'
-            if seq_idx == '1':
-                sset = 'val'
-            elif seq_idx == '3':
+            if not os.path.exists(os.path.join(file_root, subject, action_name, seq_idx)):
+                continue  # Salta questa sequenza se non esiste in file_root
+            #print(seq_idx)
+            if seq_idx == '3':
                 sset = 'test'
-            try:
-                for file_name in os.listdir(os.path.join(file_root, subject, action_name, seq_idx, 'color')):
-                    frame_idx = int(file_name.split('.')[0].split('_')[1])
-                    sample = {
-                        'subject': subject,
-                        'action_name': action_name,
-                        'seq_idx': seq_idx,
-                        'frame_idx': frame_idx,
-                        'object': obj
-                    }
-                    img_path = os.path.join(file_root, subject, action_name, seq_idx, 'color', file_name)
-        
-                    skel = get_skeleton(sample, skeleton_root)[reorder_idx]
+            elif seq_idx == '1':
+                sset = 'val'
+            elif seq_idx != '3' and seq_idx != '1':
+                sset = 'train'
     
-                    # Load object transform
-                    obj_trans = get_obj_transform(sample, obj_trans_root)
-                
-                    mesh = object_infos[sample['object']]
-                    verts = np.array(mesh.bounding_box_oriented.vertices) * 1000
-                
-                    # Apply transform to object
-                    hom_verts = np.concatenate([verts, np.ones([verts.shape[0], 1])], axis=1)
-                    verts_trans = obj_trans.dot(hom_verts.T).T
-                
-                    # Apply camera extrinsic to object
-                    verts_camcoords = cam_extr.dot(verts_trans.transpose()).transpose()[:, :3]
-                    # Project and object skeleton using camera intrinsics
-                    verts_hom2d = np.array(cam_intr).dot(verts_camcoords.transpose()).transpose()
-                    verts_proj = (verts_hom2d / verts_hom2d[:, 2:])[:, :2]
+            print(f"Subject: {subject}, Action: {action_name}, Seq_idx: {seq_idx}, Assigned to: {sset}")
+            for file_name in os.listdir(os.path.join(file_root, subject, action_name, seq_idx, 'color')):
+                frame_idx = int(file_name.split('.')[0].split('_')[1])
+                sample = {
+                    'subject': subject,
+                    'action_name': action_name,
+                    'seq_idx': seq_idx,
+                    'frame_idx': frame_idx,
+                    'object': obj
+                }
+                img_path = os.path.join(file_root, subject, action_name, seq_idx, 'color', file_name)
+        
+                skel = get_skeleton(sample, skeleton_root)[reorder_idx]
+                #print(skel)
+
+                # Load object transform
+                obj_trans = get_obj_transform(sample, obj_trans_root)
+                #print(obj_trans)
+            
+                mesh = object_infos[sample['object']]
+                #print(repr(f'BOIA DEH:  {mesh}'))
+                #print(repr(f'BOIA DEH:  {mesh.bounding_box_oriented}'))
+                verts = np.array(mesh.bounding_box_oriented.vertices) * 1000
+
+                # Apply transform to object
+                hom_verts = np.concatenate([verts, np.ones([verts.shape[0], 1])], axis=1)
+                verts_trans = obj_trans.dot(hom_verts.T).T
                     
-                    # Apply camera extrinsic to hand skeleton
-                    skel_hom = np.concatenate([skel, np.ones([skel.shape[0], 1])], 1)
-                    skel_camcoords = cam_extr.dot(skel_hom.transpose()).transpose()[:, :3].astype(np.float32)
-                    
-                    skel_hom2d = np.array(cam_intr).dot(skel_camcoords.transpose()).transpose()
-                    skel_proj = (skel_hom2d / skel_hom2d[:, 2:])[:, :2]
+                # Apply camera extrinsic to object
+                verts_camcoords = cam_extr.dot(verts_trans.transpose()).transpose()[:, :3]
+                # Project and object skeleton using camera intrinsics
+                verts_hom2d = np.array(cam_intr).dot(verts_camcoords.transpose()).transpose()
+                verts_proj = (verts_hom2d / verts_hom2d[:, 2:])[:, :2]
                 
-                    points = np.concatenate((skel_camcoords, verts_camcoords))
-                    projected_points = np.concatenate((skel_proj, verts_proj))
-                    
-                    if sset == 'train':
-                        images_train.append(img_path)
-                        points2d_train.append(projected_points)
-                        points3d_train.append(points)
-                    if sset == 'val':
-                        images_val.append(img_path)
-                        points2d_val.append(projected_points)
-                        points3d_val.append(points)
-                    if sset == 'test':
-                        images_test.append(img_path)
-                        points2d_test.append(projected_points)
-                        points3d_test.append(points)
-            except:
-                print('====%s, %s, %s===='%(subject, action_name, seq_idx))
+                # Apply camera extrinsic to hand skeleton
+                skel_hom = np.concatenate([skel, np.ones([skel.shape[0], 1])], 1)
+                skel_camcoords = cam_extr.dot(skel_hom.transpose()).transpose()[:, :3].astype(np.float32)
+                
+                skel_hom2d = np.array(cam_intr).dot(skel_camcoords.transpose()).transpose()
+                skel_proj = (skel_hom2d / skel_hom2d[:, 2:])[:, :2]
+            
+                points = np.concatenate((skel_camcoords, verts_camcoords))
+                projected_points = np.concatenate((skel_proj, verts_proj))
+                
+                if sset == 'train':
+                    images_train.append(img_path)
+                    points2d_train.append(projected_points)
+                    points3d_train.append(points)
+                if sset == 'val':
+                    images_val.append(img_path)
+                    points2d_val.append(projected_points)
+                    points3d_val.append(points)
+                if sset == 'test':
+                    images_test.append(img_path)
+                    points2d_test.append(projected_points)
+                    points3d_test.append(points)
+
+print(f"Number of training images: {len(images_train)}")
+print(f"Number of training 2D points: {len(points2d_train)}")
+print(f"Number of training 3D points: {len(points3d_train)}")
+
+print(f"Number of validation images: {len(images_val)}")
+print(f"Number of validation 2D points: {len(points2d_val)}")
+print(f"Number of validation 3D points: {len(points3d_val)}")
+
+print(f"Number of test images: {len(images_test)}")
+print(f"Number of test 2D points: {len(points2d_test)}")
+print(f"Number of test 3D points: {len(points3d_test)}")
 
 np.save('./images-train.npy', np.array(images_train))
 np.save('./points2d-train.npy', np.array(points2d_train))

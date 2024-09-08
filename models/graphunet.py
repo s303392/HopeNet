@@ -31,7 +31,7 @@ class GraphConv(nn.Module):
         #    I = 2 * I  # increase weight of self connections
         #A_hat = A + I
         batch, N = A_hat.shape[:2]
-        D_hat = (torch.sum(A_hat, 1) + 1e-5) ** (-0.5)
+        D_hat = (torch.sum(A_hat, 1) + 1e-5).float() ** (-0.5)
         L = D_hat.view(batch, N, 1) * A_hat * D_hat.view(batch, 1, N)
         return L
 
@@ -39,9 +39,9 @@ class GraphConv(nn.Module):
     def forward(self, X, A):
         batch = X.size(0)
         #A = self.laplacian(A)
-        A_hat = A.unsqueeze(0).repeat(batch, 1, 1)
+        A_hat = A.unsqueeze(0).repeat(batch, 1, 1).float()
         #X = self.fc(torch.bmm(A_hat, X))
-        X = self.fc(torch.bmm(self.laplacian_batch(A_hat), X))
+        X = self.fc(torch.bmm(self.laplacian_batch(A_hat), X.float()))
         if self.activation is not None:
             X = self.activation(X)
         return X

@@ -100,5 +100,20 @@ def parse_args_function():
         default = 10000,
         help="Maximum number of epochs."
     )
+
+    parser.add_argument(
+        "--output_predictions",
+        type=str,
+        default='',
+        help="File to save 3D predictions."
+    )
+
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default='',
+        help="File to save 3D predictions."
+    )
+
     args = parser.parse_args()
     return args
