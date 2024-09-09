@@ -39,7 +39,7 @@ def get_obj_transform(sample, obj_root):
 
 
 # Change this path
-root = r'C:\Users\filip\Desktop\Politecnico\INGEGNERIA\TESI_loc\hope_net\HOPE\datasets\fhad\hand_pose_action'
+root = r'./First-Person Hand Action Benchmark (F-PHAB)'
 skeleton_root = os.path.join(root, 'Hand_pose_annotation_v1')
 obj_root = os.path.join(root, 'Object_models')
 obj_trans_root = os.path.join(root, 'Object_6D_pose_annotation_v1_1')
