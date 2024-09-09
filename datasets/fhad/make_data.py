@@ -40,9 +40,9 @@ def get_obj_transform(sample, obj_root):
 
 # Change this path
 root = '/content/First-Person Hand Action Benchmark (F-PHAB)'
-skeleton_root = os.path.join(root, 'Hand_pose_annotation_v1')
-obj_root = os.path.join(root, 'Object_models')
-obj_trans_root = os.path.join(root, 'Object_6D_pose_annotation_v1_1')
+skeleton_root = os.path.join(root, 'Hand_pose_annotation_v1/Hand_pose_annotation_v1')
+obj_root = os.path.join(root, 'Object_models/Object_models')
+obj_trans_root = os.path.join(root, 'Object_6D_pose_annotation_v1_1/Object_6D_pose_annotation_v1_1')
 file_root = os.path.join(root, 'Video_files')
 # Load object mesh
 object_infos = load_objects(obj_root)
@@ -76,7 +76,7 @@ for subject in os.listdir(obj_trans_root):
         obj = '_'.join(action_name.split('_')[1:])
         #print(obj)
         for seq_idx in os.listdir(os.path.join(obj_trans_root, subject, action_name)):
-            if not os.path.exists(os.path.join(file_root, subject, action_name, seq_idx)):
+            if not os.path.exists(os.path.join(file_root, subject, subject, action_name, seq_idx)):
                 continue  # Salta questa sequenza se non esiste in file_root
             #print(seq_idx)
             if seq_idx == '3':
@@ -87,7 +87,7 @@ for subject in os.listdir(obj_trans_root):
                 sset = 'train'
     
             print(f"Subject: {subject}, Action: {action_name}, Seq_idx: {seq_idx}, Assigned to: {sset}")
-            for file_name in os.listdir(os.path.join(file_root, subject, action_name, seq_idx, 'color')):
+            for file_name in os.listdir(os.path.join(file_root, subject, subject, action_name, seq_idx, 'color')):
                 frame_idx = int(file_name.split('.')[0].split('_')[1])
                 sample = {
                     'subject': subject,
@@ -96,7 +96,7 @@ for subject in os.listdir(obj_trans_root):
                     'frame_idx': frame_idx,
                     'object': obj
                 }
-                img_path = os.path.join(file_root, subject, action_name, seq_idx, 'color', file_name)
+                img_path = os.path.join(file_root, subject, subject, action_name, seq_idx, 'color', file_name)
         
                 skel = get_skeleton(sample, skeleton_root)[reorder_idx]
                 #print(skel)
