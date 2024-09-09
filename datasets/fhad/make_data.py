@@ -39,7 +39,7 @@ def get_obj_transform(sample, obj_root):
 
 
 # Change this path
-root = r'./First-Person Hand Action Benchmark (F-PHAB)'
+root = '/content/First-Person Hand Action Benchmark (F-PHAB)/hand_pose_action'
 skeleton_root = os.path.join(root, 'Hand_pose_annotation_v1')
 obj_root = os.path.join(root, 'Object_models')
 obj_trans_root = os.path.join(root, 'Object_6D_pose_annotation_v1_1')
