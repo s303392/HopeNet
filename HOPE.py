@@ -7,8 +7,6 @@ from __future__ import absolute_import
 """# Import Libraries"""
 
 import os
-os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
-
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -34,19 +32,19 @@ def main():
 
     if args.train:
         trainset = Dataset(root=root, load_set='train', transform=transform)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=1)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=12)
         
         print('Train files loaded')
 
     if args.val:
         valset = Dataset(root=root, load_set='val', transform=transform)
-        valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size, shuffle=False, num_workers=1)
+        valloader = torch.utils.data.DataLoader(valset, batch_size=args.batch_size, shuffle=False, num_workers=8)
         
         print('Validation files loaded')
 
     if args.test:
         testset = Dataset(root=root, load_set='test', transform=transform)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=1)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=8)
         
         print('Test files loaded')
 
